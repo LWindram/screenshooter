@@ -12,4 +12,6 @@ Installed on the target device:
 
 
 Installed on Casper:
-script that runs at the periodic check-in to upload the collected screenshots.  Credentials are passed as parameters.
+<ul>
+  <li>script that runs at the periodic check-in to upload the collected screenshots.  Credentials are passed as parameters.</li>
+</ul>
