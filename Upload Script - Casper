@@ -1,0 +1,102 @@
+#!/bin/bash
+
+################################
+#
+# Created 12-03-14 Luke Windram
+#
+# This script mounts an SMB share,
+# uploads the contents of passed 
+# folder location to the share, 
+# deletes the local files, 
+# then unmounts the share
+#
+################################
+
+################################
+#
+# Variable Assignment Section
+#
+################################
+
+# Note that network information and credentials 
+# are passed by Parameter from Casper
+
+# Parameter 4 is the network share path
+# note that the path should not be prefixed with smb://
+# i.e. start with the server name
+# Parameter 5 is a username with write permission to the share
+# Parameter 6 is the password for the username above
+# Parameter 7 is the local filepath to upload
+
+# For the log_location variable, put the preferred 
+# location of the log file for this script. If you 
+# don't have a preference, using the default setting
+# should be fine.
+ 
+log_location="/var/log/upload.log"
+
+################################
+#
+# Function Section
+#
+################################
+  
+# Function to provide logging of the script's actions to
+# the log file defined by the log_location variable
+# This function sourced from github.com/Rtrouton 
+ 
+ScriptLogging(){
+ 
+    DATE=`date +%Y-%m-%d\ %H:%M:%S`
+    LOG="$log_location"
+    
+    echo "$DATE" " $1" >> $LOG
+}
+ 
+#################################
+#
+# Script Section
+#
+#################################
+ 
+#ScriptLogging "======== Starting Upload ========"
+
+# Capture the logged in user short name
+# We will use this to a.) name the network folder created by the script
+# and to b.) verify that the information uploaded is from the desired user
+loggedInUser=$( ls -l /dev/console | awk '{print $3}' )
+
+# Mount Network Share
+mkdir /Volumes/share
+mount -o nobrowse -t smbfs //$5:$6@$4 /Volumes/share
+ScriptLogging "Network Share Mounted"
+
+# Check for appropriate network folder and create if needed
+if [ ! -d /Volumes/share/$loggedInUser ]
+   then 
+      mkdir /Volumes/share/$loggedInUser
+      ScriptLogging "Added Network Folder $networkShare/$loggedInUser"
+fi
+
+# Copy files from local device to share
+
+for f in $7
+do
+  cp $7/$f /Volumes/share/$loggedInUser/$f
+  if [ $? -eq 0 ]; then
+	  ScriptLogging "Uploaded $f"
+# comment out line below to preserve local file	  
+	  rm -f $7/$f; ScriptLogging "Local copy of $f deleted"
+  else
+	  ScriptLogging "Upload Interrupted - Preserving local copy of $f" 
+  fi
+done
+
+# Disconnect share
+umount /Volumes/share 
+ScriptLogging "======== Upload Complete ========"
+
+# If audit trail is needed on local device, leave the following 
+# line commented out.  If enabled, the local log files will be deleted.
+#rm -f $log_location
+exit 0
