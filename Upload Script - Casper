@@ -27,13 +27,14 @@
 # Parameter 5 is a username with write permission to the share
 # Parameter 6 is the password for the username above
 # Parameter 7 is the local filepath to upload
+# if used with screenshooter, this should be /private/var/doc
 
 # For the log_location variable, put the preferred 
 # location of the log file for this script. If you 
 # don't have a preference, using the default setting
 # should be fine.
  
-log_location="/var/log/upload.log"
+LOG_LOCATION="/var/log/upload.log"
 
 ################################
 #
@@ -48,9 +49,7 @@ log_location="/var/log/upload.log"
 ScriptLogging(){
  
     DATE=`date +%Y-%m-%d\ %H:%M:%S`
-    LOG="$log_location"
-    
-    echo "$DATE" " $1" >> $LOG
+    echo "$DATE" " $1" >> $LOG_LOCATION
 }
  
 #################################
@@ -59,33 +58,33 @@ ScriptLogging(){
 #
 #################################
  
-#ScriptLogging "======== Starting Upload ========"
+ScriptLogging "======== Starting Upload ========"
 
 # Capture the logged in user short name
 # We will use this to a.) name the network folder created by the script
 # and to b.) verify that the information uploaded is from the desired user
-loggedInUser=$( ls -l /dev/console | awk '{print $3}' )
+LOGGEDINUSER=$( ls -l /dev/console | awk '{print $3}' )
 
 # Mount Network Share
 mkdir /Volumes/share
 mount -o nobrowse -t smbfs //$5:$6@$4 /Volumes/share
-ScriptLogging "Network Share Mounted"
+ScriptLogging "Mounted $4"
 
 # Check for appropriate network folder and create if needed
-if [ ! -d /Volumes/share/$loggedInUser ]
+if [ ! -d /Volumes/share/$LOGGEDINUSER ]
    then 
-      mkdir /Volumes/share/$loggedInUser
-      ScriptLogging "Added Network Folder $networkShare/$loggedInUser"
+      mkdir /Volumes/share/$LOGGEDINUSER
+      ScriptLogging "Added Network Folder $networkShare/$LOGGEDINUSER"
 fi
 
 # Copy files from local device to share
 
-for f in $7
+for f in $7/*
 do
-  cp $7/$f /Volumes/share/$loggedInUser/$f
+  cp $f /Volumes/share/$LOGGEDINUSER
   if [ $? -eq 0 ]; then
 	  ScriptLogging "Uploaded $f"
-# comment out line below to preserve local file	  
+# comment out line below to preserve local file	for auditing if needed  
 	  rm -f $7/$f; ScriptLogging "Local copy of $f deleted"
   else
 	  ScriptLogging "Upload Interrupted - Preserving local copy of $f" 
