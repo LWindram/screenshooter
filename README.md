@@ -1,7 +1,7 @@
 # screenshooter
 takes periodic silent screenshots, stores them locally, then uploads periodically to an SMB share.
 
-There are three components to this deployment:
+There are multiple components to this deployment:
 
 Installed on the target device:
 <ul>
