@@ -10,13 +10,15 @@
 #
 ######################
 
-
+# check destination file exists
+# if not, create it
 if [ ! -f /private/var/doc ]
 then
 	mkdir -p /private/var/doc
 fi
-
-X=`date '+%m%d%Y:%H:%M:%S'`
+# assign unique name with datestamp to resultant image
+X=$(date '+%m%d%Y:%H:%M:%S')
+# take silent screenshot
 screencapture -t jpg -x /private/var/doc/$X.jpg
 
 exit 0
